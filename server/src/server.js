@@ -4,6 +4,7 @@ const express = require('express');
 const connectDB = require('./config/db');
 
 const projectRoutes = require('./routes/projectRoutes');
+const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
@@ -18,6 +19,8 @@ app.get('/api/health', (req, res) => {
     message: 'Portfolio API is running.'
   });
 });
+
+app.use(errorHandler);
 
 const startServer = async () => {
   await connectDB();

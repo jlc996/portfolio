@@ -1,20 +1,19 @@
-const requireRole = (requiredRole) => {
+const requireRole = (...allowedRoles) => {
   return (req, res, next) => {
-    // Make sure authentication ran before role authorization
+    // Make sure authentication ran first
     if (!req.user) {
       return res.status(401).json({
         message: 'Authentication required.'
       });
     }
 
-    // Check whether the authenticated user has the required role
-    if (req.user.role !== requiredRole) {
+    // Check whether the user's role is allowed
+    if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
-        message: 'Forbidden.'
+        message: 'Access denied.'
       });
     }
 
-    // User has the required role
     next();
   };
 };

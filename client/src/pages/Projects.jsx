@@ -22,11 +22,11 @@ import styles from "../styles/pages/Projects.module.css";
 
 
 // =====================================================
-// GitHub API URL
+// Portfolio API URL
 // =====================================================
 
 const API_URL =
-    "https://api.github.com/users/jlc996/repos";
+    `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/projects`;
 
 
 
@@ -85,14 +85,16 @@ function Projects() {
 
 
     // ==========================
-    // Fetch GitHub Repositories
+    // Fetch Portfolio Projects
     // ==========================
 
     const {
-        data: projects,
-        isLoading,
-        error,
-    } = useFetch(API_URL);
+    data,
+    isLoading,
+    error,
+} = useFetch(API_URL);
+
+const projects = data?.data || [];
 
 
 

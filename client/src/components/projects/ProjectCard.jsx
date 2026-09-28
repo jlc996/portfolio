@@ -1,9 +1,7 @@
 // ProjectCard.jsx
 
-// Import React Router navigation
 import { Link } from "react-router-dom";
 
-// Import component styles
 import styles from "../../styles/projects/ProjectCard.module.css";
 
 
@@ -50,10 +48,10 @@ function ProjectCard({ project }) {
         <p>
 
           <strong>
-            Language:
+            Technologies:
           </strong>{" "}
 
-          {project.language ||
+          {project.technologies?.join(", ") ||
             "N/A"}
 
         </p>
@@ -62,10 +60,14 @@ function ProjectCard({ project }) {
         <p>
 
           <strong>
-            Stars:
+            Created:
           </strong>{" "}
 
-          {project.stargazers_count}
+          {project.createdAt
+            ? new Date(
+                project.createdAt
+              ).toLocaleDateString()
+            : "N/A"}
 
         </p>
 
@@ -76,9 +78,11 @@ function ProjectCard({ project }) {
             Updated:
           </strong>{" "}
 
-          {new Date(
-            project.updated_at
-          ).toLocaleDateString()}
+          {project.updatedAt
+            ? new Date(
+                project.updatedAt
+              ).toLocaleDateString()
+            : "N/A"}
 
         </p>
 
@@ -91,11 +95,10 @@ function ProjectCard({ project }) {
 
       <div className={styles.projectButtons}>
 
-
         {/* View Details Page */}
 
         <Link
-          to={`/projects/${project.name}`}
+          to={`/projects/${project._id}`}
           className={`${styles.button} ${styles.primaryButton}`}
         >
 
@@ -107,7 +110,7 @@ function ProjectCard({ project }) {
         {/* Open GitHub Repository */}
 
         <a
-          href={project.html_url}
+          href={project.githubUrl}
           target="_blank"
           rel="noopener noreferrer"
           className={`${styles.button} ${styles.secondaryButton}`}
@@ -116,7 +119,6 @@ function ProjectCard({ project }) {
           GitHub
 
         </a>
-
 
       </div>
 
@@ -127,5 +129,4 @@ function ProjectCard({ project }) {
 }
 
 
-// Export component
 export default ProjectCard;

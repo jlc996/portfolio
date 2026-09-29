@@ -1,13 +1,10 @@
 // ProjectActions.jsx
 
-// Import React Router Link
 import { Link } from "react-router-dom";
 
-// Import component styles
 import styles from "../../../styles/projects/projectDetails/ProjectActions.module.css";
 
 
-// Project Actions component
 function ProjectActions({ project }) {
 
   return (
@@ -16,14 +13,12 @@ function ProjectActions({ project }) {
 
       {/* ==========================
           Live Demo Button
-          Only displays if a
-          homepage URL exists
       ========================== */}
 
-      {project.homepage && (
+      {project.liveUrl && (
 
         <a
-          href={project.homepage}
+          href={project.liveUrl}
           target="_blank"
           rel="noopener noreferrer"
           className={`${styles.button} ${styles.primaryButton}`}
@@ -41,7 +36,7 @@ function ProjectActions({ project }) {
       ========================== */}
 
       <a
-        href={project.html_url}
+        href={project.githubUrl}
         target="_blank"
         rel="noopener noreferrer"
         className={`${styles.button} ${styles.primaryButton}`}
@@ -72,5 +67,4 @@ function ProjectActions({ project }) {
 }
 
 
-// Export component
 export default ProjectActions;

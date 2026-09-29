@@ -98,7 +98,7 @@ function ProjectCard({ project }) {
         {/* View Details Page */}
 
         <Link
-          to={`/projects/${project._id}`}
+          to={`/projects/${project.id}`}
           className={`${styles.button} ${styles.primaryButton}`}
         >
 

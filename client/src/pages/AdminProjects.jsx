@@ -11,6 +11,7 @@ function AdminProjects() {
 
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [editingId, setEditingId] = useState(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -85,6 +86,70 @@ function AdminProjects() {
       });
 
       setMessage("Project created successfully.");
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+  // Edit project
+  const handleEdit = (project) => {
+    setEditingId(project.id);
+
+    setForm({
+      name: project.name || "",
+      description: project.description || "",
+      technologies: project.technologies?.join(", ") || "",
+      image: project.image || "",
+      githubUrl: project.githubUrl || "",
+      liveUrl: project.liveUrl || ""
+    });
+
+    setError("");
+    setMessage("");
+  };
+
+  // Update project
+  const handleUpdate = async (event) => {
+    event.preventDefault();
+
+    setError("");
+    setMessage("");
+
+    try {
+      const response = await apiFetch(
+        `/api/projects/${editingId}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            ...form,
+            technologies: form.technologies
+              .split(",")
+              .map((technology) => technology.trim())
+              .filter(Boolean)
+          })
+        }
+      );
+
+      setProjects((currentProjects) =>
+        currentProjects.map((project) =>
+          project.id === editingId
+            ? response.data
+            : project
+        )
+      );
+
+      setForm({
+        name: "",
+        description: "",
+        technologies: "",
+        image: "",
+        githubUrl: "",
+        liveUrl: ""
+      });
+
+      setEditingId(null);
+
+      setMessage("Project updated successfully.");
     } catch (error) {
       setError(error.message);
     }
@@ -187,9 +252,19 @@ function AdminProjects() {
           Create Project
       ========================== */}
 
-      <h2>Create Project</h2>
+      <h2>
+        {editingId
+          ? "Edit Project"
+          : "Create Project"}
+      </h2>
 
-      <form onSubmit={handleCreate}>
+      <form
+        onSubmit={
+          editingId
+            ? handleUpdate
+            : handleCreate
+        }
+      >
 
         <div>
           <label htmlFor="name">
@@ -277,7 +352,9 @@ function AdminProjects() {
         </div>
 
         <button type="submit">
-          Create Project
+          {editingId
+            ? "Update Project"
+            : "Create Project"}
         </button>
 
       </form>
@@ -312,6 +389,15 @@ function AdminProjects() {
               </strong>{" "}
               {project.technologies?.join(", ")}
             </p>
+
+            <button
+              type="button"
+              onClick={() =>
+                handleEdit(project)
+              }
+            >
+              Edit
+            </button>
 
             <button
               type="button"

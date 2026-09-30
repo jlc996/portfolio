@@ -1,5 +1,3 @@
-// Navbar.jsx
-
 import { NavLink, Link } from "react-router-dom";
 
 import ThemeToggle from "./ThemeToggle";
@@ -14,62 +12,46 @@ function Navbar() {
 
   return (
     <nav className="navbar">
-
-      {/* ==========================
-          Logo Section
-      ========================== */}
-
-      <Link
-        to="/"
-        className="logo"
-      >
+      {/* Logo */}
+      <Link to="/" className="logo">
         <img
           src={logoPic}
-          alt="portfolio logo"
+          alt="Joshua Craven portfolio logo"
           className="logo-image"
         />
 
-        <h2>
-          Joshua Craven
-        </h2>
+        <h2>Joshua Craven</h2>
       </Link>
 
-
-      {/* ==========================
-          Navigation Links
-      ========================== */}
-
+      {/* Navigation */}
       <ul className="nav-links">
-
         <li>
-          <NavLink to="/">
-            Home
-          </NavLink>
+          <NavLink to="/">Home</NavLink>
         </li>
 
         <li>
-          <NavLink to="/projects">
-            Projects
-          </NavLink>
+          <NavLink to="/projects">Projects</NavLink>
         </li>
 
         <li>
-          <NavLink to="/experience">
-            Experience
-          </NavLink>
+          <NavLink to="/experience">Experience</NavLink>
         </li>
 
         <li>
-          <NavLink to="/contact">
-            Contact
-          </NavLink>
+          <NavLink to="/contact">Contact</NavLink>
         </li>
+
+        {isAuthenticated && user?.role === "admin" && (
+          <li>
+            <NavLink to="/admin/projects">
+              Admin
+            </NavLink>
+          </li>
+        )}
 
         {!isAuthenticated && (
           <li>
-            <NavLink to="/login">
-              Login
-            </NavLink>
+            <NavLink to="/login">Login</NavLink>
           </li>
         )}
 
@@ -78,32 +60,23 @@ function Navbar() {
             <button
               type="button"
               onClick={logout}
+              className="logout-button"
             >
               Logout
             </button>
           </li>
         )}
-
       </ul>
 
-
-      {/* ==========================
-          Authentication Status
-      ========================== */}
-
+      {/* Logged-in user */}
       {isAuthenticated && user && (
-        <span>
+        <span className="user-email">
           {user.email}
         </span>
       )}
 
-
-      {/* ==========================
-          Theme Controls
-      ========================== */}
-
+      {/* Theme */}
       <ThemeToggle />
-
     </nav>
   );
 }

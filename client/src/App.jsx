@@ -10,6 +10,7 @@ import Experience from "./pages/Experience";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import AdminProjects from "./pages/AdminProjects";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -41,7 +42,14 @@ function AppContent() {
           <Route path="/experience" element={<Experience />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/admin/projects" element={<AdminProjects />} />
+          <Route
+            path="/admin/projects"
+            element={
+              <ProtectedRoute adminOnly>
+                <AdminProjects />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </main>
 

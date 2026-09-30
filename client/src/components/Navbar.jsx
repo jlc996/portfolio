@@ -1,51 +1,38 @@
 // Navbar.jsx
 
-// Import React Router components
-// NavLink provides client-side navigation with active link styling
-// Link makes the logo clickable and routes back to the homepage
 import { NavLink, Link } from "react-router-dom";
 
-// Import theme toggle component
 import ThemeToggle from "./ThemeToggle";
+import { useAuth } from "../context/AuthContext";
 
-// Import navbar styles
 import "../styles/Navbar.css";
 
 import logoPic from "../assets/logo.png";
 
-// Navigation component
 function Navbar() {
+  const { isAuthenticated, user, logout } = useAuth();
 
   return (
-
-    // Main navigation container
     <nav className="navbar">
-
 
       {/* ==========================
           Logo Section
       ========================== */}
 
-      {/* Clicking the logo returns the user to Home */}
       <Link
         to="/"
         className="logo"
       >
-
-        {/* Portfolio Logo */}
         <img
           src={logoPic}
           alt="portfolio logo"
           className="logo-image"
         />
 
-        {/* Developer Name */}
         <h2>
           Joshua Craven
         </h2>
-
       </Link>
-
 
 
       {/* ==========================
@@ -60,13 +47,11 @@ function Navbar() {
           </NavLink>
         </li>
 
-
         <li>
           <NavLink to="/projects">
             Projects
           </NavLink>
         </li>
-
 
         <li>
           <NavLink to="/experience">
@@ -74,30 +59,53 @@ function Navbar() {
           </NavLink>
         </li>
 
-
         <li>
           <NavLink to="/contact">
             Contact
           </NavLink>
         </li>
 
+        {!isAuthenticated && (
+          <li>
+            <NavLink to="/login">
+              Login
+            </NavLink>
+          </li>
+        )}
+
+        {isAuthenticated && (
+          <li>
+            <button
+              type="button"
+              onClick={logout}
+            >
+              Logout
+            </button>
+          </li>
+        )}
+
       </ul>
 
+
+      {/* ==========================
+          Authentication Status
+      ========================== */}
+
+      {isAuthenticated && user && (
+        <span>
+          {user.email}
+        </span>
+      )}
 
 
       {/* ==========================
           Theme Controls
       ========================== */}
 
-      {/* Switches between light and dark mode */}
       <ThemeToggle />
 
-
     </nav>
-
   );
 }
 
-
-// Export Navbar component
 export default Navbar;

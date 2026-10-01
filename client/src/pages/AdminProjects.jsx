@@ -1,418 +1,338 @@
 import { useEffect, useState } from "react";
 
+import styles from "../styles/pages/AdminProjects.module.css";
 import { apiFetch } from "../api";
 import { useAuth } from "../context/AuthContext";
 
+const emptyForm = {
+name: "",
+description: "",
+technologies: "",
+image: "",
+githubUrl: "",
+liveUrl: ""
+};
+
 function AdminProjects() {
-  const { user, isAuthenticated } = useAuth();
+const { user, isAuthenticated } = useAuth();
 
-  const [projects, setProjects] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+const [projects, setProjects] = useState([]);
+const [isLoading, setIsLoading] = useState(true);
+const [error, setError] = useState("");
+const [message, setMessage] = useState("");
+const [editingId, setEditingId] = useState(null);
+const [form, setForm] = useState(emptyForm);
 
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
-  const [editingId, setEditingId] = useState(null);
+useEffect(() => {
+const loadProjects = async () => {
+try {
+const response = await apiFetch("/api/projects");
+setProjects(response.data || []);
+} catch (error) {
+setError(error.message);
+} finally {
+setIsLoading(false);
+}
+};
 
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    technologies: "",
-    image: "",
-    githubUrl: "",
-    liveUrl: ""
+loadProjects();
+
+}, []);
+
+const handleChange = (event) => {
+const { name, value } = event.target;
+
+setForm((currentForm) => ({
+  ...currentForm,
+  [name]: value
+}));
+
+};
+
+const formatFormData = () => ({
+...form,
+technologies: form.technologies
+.split(",")
+.map((technology) => technology.trim())
+.filter(Boolean)
+});
+
+const resetForm = () => {
+setForm({ ...emptyForm });
+setEditingId(null);
+};
+
+const handleCreate = async (event) => {
+event.preventDefault();
+setError("");
+setMessage("");
+
+try {
+  const response = await apiFetch("/api/projects", {
+    method: "POST",
+    body: JSON.stringify(formatFormData())
   });
 
-  // Load projects
-  useEffect(() => {
-    const loadProjects = async () => {
-      try {
-        const response = await apiFetch("/api/projects");
+  setProjects((currentProjects) => [
+    response.data,
+    ...currentProjects
+  ]);
 
-        setProjects(response.data || []);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  resetForm();
+  setMessage("Project created successfully.");
+} catch (error) {
+  setError(error.message);
+}
 
-    loadProjects();
-  }, []);
+};
 
-  // Handle form inputs
-  const handleChange = (event) => {
-    const { name, value } = event.target;
+const handleEdit = (project) => {
+setEditingId(project.id);
 
-    setForm((currentForm) => ({
-      ...currentForm,
-      [name]: value
-    }));
-  };
+setForm({
+  name: project.name || "",
+  description: project.description || "",
+  technologies: project.technologies?.join(", ") || "",
+  image: project.image || "",
+  githubUrl: project.githubUrl || "",
+  liveUrl: project.liveUrl || ""
+});
 
-  // Create project
-  const handleCreate = async (event) => {
-    event.preventDefault();
+setError("");
+setMessage("");
 
-    setError("");
-    setMessage("");
+};
 
-    try {
-      const response = await apiFetch(
-        "/api/projects",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            ...form,
-            technologies: form.technologies
-              .split(",")
-              .map((technology) => technology.trim())
-              .filter(Boolean)
-          })
-        }
-      );
+const handleUpdate = async (event) => {
+event.preventDefault();
+setError("");
+setMessage("");
 
-      setProjects((currentProjects) => [
-        response.data,
-        ...currentProjects
-      ]);
-
-      setForm({
-        name: "",
-        description: "",
-        technologies: "",
-        image: "",
-        githubUrl: "",
-        liveUrl: ""
-      });
-
-      setMessage("Project created successfully.");
-    } catch (error) {
-      setError(error.message);
+try {
+  const response = await apiFetch(
+    `/api/projects/${editingId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(formatFormData())
     }
-  };
+  );
 
-  // Edit project
-  const handleEdit = (project) => {
-    setEditingId(project.id);
+  setProjects((currentProjects) =>
+    currentProjects.map((project) =>
+      project.id === editingId ? response.data : project
+    )
+  );
 
-    setForm({
-      name: project.name || "",
-      description: project.description || "",
-      technologies: project.technologies?.join(", ") || "",
-      image: project.image || "",
-      githubUrl: project.githubUrl || "",
-      liveUrl: project.liveUrl || ""
-    });
+  resetForm();
+  setMessage("Project updated successfully.");
+} catch (error) {
+  setError(error.message);
+}
 
-    setError("");
-    setMessage("");
-  };
+};
 
-  // Update project
-  const handleUpdate = async (event) => {
-    event.preventDefault();
+const handleDelete = async (projectId) => {
+const confirmed = window.confirm(
+"Are you sure you want to delete this project?"
+);
 
-    setError("");
-    setMessage("");
+if (!confirmed) return;
 
-    try {
-      const response = await apiFetch(
-        `/api/projects/${editingId}`,
-        {
-          method: "PATCH",
-          body: JSON.stringify({
-            ...form,
-            technologies: form.technologies
-              .split(",")
-              .map((technology) => technology.trim())
-              .filter(Boolean)
-          })
-        }
-      );
+setError("");
+setMessage("");
 
-      setProjects((currentProjects) =>
-        currentProjects.map((project) =>
-          project.id === editingId
-            ? response.data
-            : project
-        )
-      );
+try {
+  await apiFetch(`/api/projects/${projectId}`, {
+    method: "DELETE"
+  });
 
-      setForm({
-        name: "",
-        description: "",
-        technologies: "",
-        image: "",
-        githubUrl: "",
-        liveUrl: ""
-      });
+  setProjects((currentProjects) =>
+    currentProjects.filter(
+      (project) => project.id !== projectId
+    )
+  );
 
-      setEditingId(null);
-
-      setMessage("Project updated successfully.");
-    } catch (error) {
-      setError(error.message);
-    }
-  };
-
-  // Delete project
-  const handleDelete = async (projectId) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this project?"
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    setError("");
-    setMessage("");
-
-    try {
-      await apiFetch(`/api/projects/${projectId}`, {
-        method: "DELETE"
-      });
-
-      setProjects((currentProjects) =>
-        currentProjects.filter(
-          (project) => project.id !== projectId
-        )
-      );
-
-      setMessage("Project deleted successfully.");
-    } catch (error) {
-      setError(error.message);
-    }
-  };
-
-  // Authentication check
-  if (!isAuthenticated) {
-    return (
-      <section>
-        <h1>Admin Projects</h1>
-
-        <p>
-          You must be logged in to access this page.
-        </p>
-      </section>
-    );
+  if (editingId === projectId) {
+    resetForm();
   }
 
-  // Admin authorization check
-  if (user?.role !== "admin") {
-    return (
-      <section>
-        <h1>Access Denied</h1>
+  setMessage("Project deleted successfully.");
+} catch (error) {
+  setError(error.message);
+}
 
-        <p>
-          You do not have permission to manage projects.
-        </p>
-      </section>
-    );
-  }
+};
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <section>
-        <h1>Admin Projects</h1>
+if (!isAuthenticated || user?.role !== "admin") {
+return ( <section className={styles.admin}> <header className={styles.header}> <h1>
+{isAuthenticated ? "Access Denied" : "Admin Projects"} </h1> <p className={styles.subtitle}>
+{isAuthenticated
+? "You do not have permission to manage projects."
+: "You must be logged in to access this page."} </p> </header> </section>
+);
+}
 
-        <p>
-          Loading projects...
-        </p>
-      </section>
-    );
-  }
+if (isLoading) {
+return ( <section className={styles.admin}> <h1>Admin Projects</h1> <p>Loading projects...</p> </section>
+);
+}
 
-  return (
-    <section>
-      <h1>Admin Projects</h1>
+return ( <section className={styles.admin}> <header className={styles.header}> <h1>Admin Projects</h1> <p className={styles.subtitle}>
+Manage the projects displayed on your portfolio. </p> </header>
 
-      <p>
-        Manage the projects displayed on your portfolio.
-      </p>
+  {message && (
+    <p className={styles.success} role="status">
+      {message}
+    </p>
+  )}
 
-      {/* ==========================
-          Status Messages
-      ========================== */}
+  {error && (
+    <p className={styles.error} role="alert">
+      {error}
+    </p>
+  )}
 
-      {message && (
-        <p>
-          {message}
-        </p>
-      )}
+  <div className={styles.panel}>
+    <h2>{editingId ? "Edit Project" : "Create Project"}</h2>
 
-      {error && (
-        <p role="alert">
-          {error}
-        </p>
-      )}
+    <form
+      className={styles.form}
+      onSubmit={editingId ? handleUpdate : handleCreate}
+    >
+      <div className={styles.field}>
+        <label htmlFor="name">Project Name</label>
+        <input
+          id="name"
+          name="name"
+          value={form.name}
+          onChange={handleChange}
+          required
+        />
+      </div>
 
-      {/* ==========================
-          Create Project
-      ========================== */}
+      <div className={`${styles.field} ${styles.fullWidth}`}>
+        <label htmlFor="description">Description</label>
+        <textarea
+          id="description"
+          name="description"
+          value={form.description}
+          onChange={handleChange}
+          required
+        />
+      </div>
 
-      <h2>
-        {editingId
-          ? "Edit Project"
-          : "Create Project"}
-      </h2>
+      <div className={styles.field}>
+        <label htmlFor="technologies">Technologies</label>
+        <input
+          id="technologies"
+          name="technologies"
+          value={form.technologies}
+          onChange={handleChange}
+          placeholder="React, Node.js, MongoDB"
+          required
+        />
+      </div>
 
-      <form
-        onSubmit={
-          editingId
-            ? handleUpdate
-            : handleCreate
-        }
-      >
+      <div className={styles.field}>
+        <label htmlFor="image">Image URL</label>
+        <input
+          id="image"
+          name="image"
+          type="url"
+          value={form.image}
+          onChange={handleChange}
+        />
+      </div>
 
-        <div>
-          <label htmlFor="name">
-            Project Name
-          </label>
+      <div className={styles.field}>
+        <label htmlFor="githubUrl">GitHub URL</label>
+        <input
+          id="githubUrl"
+          name="githubUrl"
+          type="url"
+          value={form.githubUrl}
+          onChange={handleChange}
+          required
+        />
+      </div>
 
-          <input
-            id="name"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            required
-          />
-        </div>
+      <div className={styles.field}>
+        <label htmlFor="liveUrl">Live URL</label>
+        <input
+          id="liveUrl"
+          name="liveUrl"
+          type="url"
+          value={form.liveUrl}
+          onChange={handleChange}
+        />
+      </div>
 
-        <div>
-          <label htmlFor="description">
-            Description
-          </label>
-
-          <textarea
-            id="description"
-            name="description"
-            value={form.description}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div>
-          <label htmlFor="technologies">
-            Technologies
-          </label>
-
-          <input
-            id="technologies"
-            name="technologies"
-            value={form.technologies}
-            onChange={handleChange}
-            placeholder="React, Node.js, MongoDB"
-            required
-          />
-        </div>
-
-        <div>
-          <label htmlFor="image">
-            Image URL
-          </label>
-
-          <input
-            id="image"
-            name="image"
-            value={form.image}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
-          <label htmlFor="githubUrl">
-            GitHub URL
-          </label>
-
-          <input
-            id="githubUrl"
-            name="githubUrl"
-            type="url"
-            value={form.githubUrl}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div>
-          <label htmlFor="liveUrl">
-            Live URL
-          </label>
-
-          <input
-            id="liveUrl"
-            name="liveUrl"
-            type="url"
-            value={form.liveUrl}
-            onChange={handleChange}
-          />
-        </div>
-
-        <button type="submit">
-          {editingId
-            ? "Update Project"
-            : "Create Project"}
+      <div className={styles.actions}>
+        <button className={styles.button} type="submit">
+          {editingId ? "Update Project" : "Create Project"}
         </button>
 
-      </form>
+        {editingId && (
+          <button
+            className={styles.secondaryButton}
+            type="button"
+            onClick={resetForm}
+          >
+            Cancel Edit
+          </button>
+        )}
+      </div>
+    </form>
+  </div>
 
-      {/* ==========================
-          Existing Projects
-      ========================== */}
+  <div className={styles.header}>
+    <h2>Existing Projects</h2>
+    <p className={styles.subtitle}>
+      {projects.length} {projects.length === 1 ? "project" : "projects"}
+    </p>
+  </div>
 
-      <h2>
-        Existing Projects
-      </h2>
+  {projects.length === 0 ? (
+    <p>No projects found.</p>
+  ) : (
+    <div className={styles.projectList}>
+      {projects.map((project) => (
+        <article
+          className={styles.projectCard}
+          key={project.id}
+        >
+          <h3>{project.name}</h3>
+          <p>{project.description}</p>
 
-      {projects.length === 0 ? (
-        <p>
-          No projects found.
-        </p>
-      ) : (
-        projects.map((project) => (
-          <article key={project.id}>
+          <p className={styles.technologies}>
+            <strong>Technologies:</strong>{" "}
+            {project.technologies?.join(", ")}
+          </p>
 
-            <h3>
-              {project.name}
-            </h3>
-
-            <p>
-              {project.description}
-            </p>
-
-            <p>
-              <strong>
-                Technologies:
-              </strong>{" "}
-              {project.technologies?.join(", ")}
-            </p>
-
+          <div className={styles.projectActions}>
             <button
+              className={styles.secondaryButton}
               type="button"
-              onClick={() =>
-                handleEdit(project)
-              }
+              onClick={() => handleEdit(project)}
             >
               Edit
             </button>
 
             <button
+              className={styles.dangerButton}
               type="button"
-              onClick={() =>
-                handleDelete(project.id)
-              }
+              onClick={() => handleDelete(project.id)}
             >
               Delete
             </button>
+          </div>
+        </article>
+      ))}
+    </div>
+  )}
+</section>
 
-          </article>
-        ))
-      )}
-    </section>
-  );
+);
 }
 
 export default AdminProjects;

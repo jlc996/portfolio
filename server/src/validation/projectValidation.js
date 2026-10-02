@@ -25,9 +25,11 @@ const projectSchema = z.object({
     .url('GitHub URL must be a valid URL.'),
 
   liveUrl: z
-    .string()
-    .url('Live URL must be a valid URL.')
-    .optional()
+  .union([
+    z.string().url('Live URL must be a valid URL.'),
+    z.literal('')
+  ])
+  .optional()
 });
 
 const validateProject = (req, res, next) => {

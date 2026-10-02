@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -42,6 +42,11 @@ function AppContent() {
           <Route path="/experience" element={<Experience />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
+          {/* Redirect /admin to /admin/projects */}
+          <Route
+            path="/admin"
+            element={<Navigate to="/admin/projects" replace />}
+          />
           <Route
             path="/admin/projects"
             element={

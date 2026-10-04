@@ -15,7 +15,7 @@
 | 4 | Request validation | PASS — code reviewed | Zod validation middleware is applied to registration, login, and project create/update requests. |
 | 5 | HTTP security headers | PASS — code reviewed | `server/src/app.js` applies `helmet()` before registering routes. |
 | 6 | MongoDB filter sanitization | PASS — code reviewed | `server/src/app.js` configures `mongoose.set('sanitizeFilter', true)`. |
-| 7 | Login rate limiting | CONFIGURED — runtime test pending | `server/src/middleware/rateLimiter.js` sets a limit of five attempts per 15 minutes. Verify that a sixth attempt receives HTTP 429. |
+| 7 | Login rate limiting | PASS — runtime tested | `server/src/middleware/rateLimiter.js` limits login attempts to five per 15-minute window. Runtime testing confirmed that an additional request after the limit was exhausted received HTTP 429. Response headers included `RateLimit-Limit`, `RateLimit-Remaining`, and `RateLimit-Reset`. |
 | 8 | CORS configuration | CONFIGURED — production test pending | `server/src/app.js` configures CORS using `CLIENT_URL`. Verify that the deployed frontend is allowed and an unauthorized origin is rejected by the browser. |
 | 9 | Environment secrets | PASS — ignore rules verified | `server/.env` is ignored by Git, while `server/.env.example` is not ignored. Example values must remain placeholders. |
 | 10 | Error handling | PASS — code reviewed | `server/src/middleware/errorHandler.js` handles duplicate-key, validation, and invalid-ID errors and returns a generic response for unexpected server errors. |
@@ -36,7 +36,7 @@
 
 ### Tests Still to Complete
 
-- [ ] Submit six login attempts within the rate-limit window and verify the sixth receives HTTP 429.
+- * [x] Submit repeated login attempts within the rate-limit window and verify that a request after the limit is exhausted receives HTTP 429.
 - [ ] Test production CORS from the deployed frontend and with an unauthorized origin.
 - [ ] Verify unauthenticated project mutations return HTTP 401.
 - [ ] Verify authenticated non-admin project mutations return HTTP 403.

@@ -1,3 +1,4 @@
+
 const mongoose = require('mongoose');
 
 const projectSchema = new mongoose.Schema(
@@ -40,6 +41,29 @@ const projectSchema = new mongoose.Schema(
       type: String,
       default: '',
       trim: true
+    },
+
+    category: {
+      type: String,
+      default: 'Other',
+      trim: true
+    },
+
+    featured: {
+      type: Boolean,
+      default: false
+    },
+
+    likes: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+
+    likedBy: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: 'User',
+      default: []
     }
   },
   {
@@ -47,11 +71,12 @@ const projectSchema = new mongoose.Schema(
   }
 );
 
-// Control what gets returned when a Project is converted to JSON.
+// Keep internal MongoDB fields and user IDs out of public responses.
 projectSchema.set('toJSON', {
   transform: (doc, ret) => {
     delete ret._id;
     delete ret.__v;
+    delete ret.likedBy;
 
     return ret;
   }
